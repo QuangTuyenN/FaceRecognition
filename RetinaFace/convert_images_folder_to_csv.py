@@ -18,6 +18,7 @@ import insightface
 model = insightface.app.FaceAnalysis(allowed_modules=['detection', 'recognition'])
 model.prepare(ctx_id=0)  # -1 for CPU, use GPU ID if available (e.g., 0 for GPU)
 
+##################### PATH NEW FACES IMAGE ###########################
 path = 'ImageFolder'
 
 f = open("faces.csv", "a")
