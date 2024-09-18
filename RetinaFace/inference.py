@@ -31,13 +31,13 @@ video_path = 0
 cap = cv2.VideoCapture(video_path)
 
 if not cap.isOpened():
-    print("Error: Không thể mở video.")
+    print("Error: can't read video.")
     exit()
 
 while True:
     ret, frame = cap.read()
     if not ret:
-        print("Video đã kết thúc hoặc không thể đọc được frame.")
+        print("Video is final or can't read frame.")
         break
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     faces = model.get(frame)
@@ -71,7 +71,6 @@ while True:
     if cv2.waitKey(25) & 0xFF == ord('q'):
         break
 
-# Giải phóng tài nguyên
 cap.release()
 cv2.destroyAllWindows()
 
