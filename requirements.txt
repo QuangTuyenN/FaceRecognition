@@ -2,3 +2,5 @@ insightface
 opencv-python
 onnxruntime-gpu
 torch
+faiss-cpu
+pymilvus
