@@ -3,7 +3,7 @@ import insightface
 import pandas as pd
 import cv2
 import os
-from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Collection
+from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Collection, Index
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
@@ -11,6 +11,14 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 connections.connect("default", host="localhost", port="19530")
 search_params = {"metric_type": "L2", "params": {"nprobe": 10}}
 collection = Collection("face_embeddings")
+# Release collection trước khi tạo index
+collection.release()
+index_params = {
+    "metric_type": "L2",  # Sử dụng Euclidean distance, có thể thay bằng "COSINE" nếu dùng cosine similarity
+    "index_type": "IVF_FLAT",  # Chọn loại index, ví dụ IVF_FLAT
+    "params": {"nlist": 128}  # Tham số nlist, quy định số lượng cluster cho IVF
+}
+index = Index(collection, "embedding", index_params)
 collection.load()
 ######################################################
 
@@ -47,14 +55,13 @@ while True:
             results = collection.search([list_emb], "embedding", search_params, limit=1)
             for result in results:
                 print(f"Matched id: {result.ids[0]}, Distance: {result.distances[0]}")
-                # if dist < 1.1:
-                #     name = list_name[index]
-                #     name = name.rstrip(".jpg")
-                # else:
-                #     name = "Unknow"
-                # # cv2.putText(frame, str(dist), (100, 100), cv2.FONT_HERSHEY_PLAIN, 2, (200, 255, 155), 2, cv2.LINE_AA)
-                # cv2.putText(frame, name, (x1, y1), cv2.FONT_HERSHEY_PLAIN, 2, (200, 255, 155), 2, cv2.LINE_AA)
-                # cv2.rectangle(frame, (x1, y1), (x2, y2), (200, 255, 255), 1)
+                if result.distances[0] < 1.1:
+                    name = result.ids[0]
+                else:
+                    name = "Unknow"
+                cv2.putText(frame, str(result.distances[0]), (100, 100), cv2.FONT_HERSHEY_PLAIN, 2, (200, 255, 155), 2, cv2.LINE_AA)
+                cv2.putText(frame, name, (x1, y1), cv2.FONT_HERSHEY_PLAIN, 2, (200, 255, 155), 2, cv2.LINE_AA)
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (200, 255, 255), 1)
     else:
         cv2.putText(frame, 'No face', (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (200, 255, 155), 2, cv2.LINE_AA)
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
